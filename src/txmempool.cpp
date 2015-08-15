@@ -78,8 +78,12 @@ bool CTxMemPool::addUnchecked(const uint256& hash, const CTxMemPoolEntry &entry)
     {
         mapTx[hash] = entry;
         const CTransaction& tx = mapTx[hash].GetTx();
-        for (unsigned int i = 0; i < tx.vin.size(); i++)
+        for (unsigned int i = 0; i < tx.vin.size(); i++){
             mapNextTx[tx.vin[i].prevout] = CInPoint(&tx, i);
+            BOOST_FOREACH(const uint256 serial, tx.vin[i].GetZerocoinSerialNumbers()){
+                mapZerocoinSerialNumbers[serial] = CInPoint(&tx,i);
+            }
+        }
         nTransactionsUpdated++;
     }
     return true;
@@ -103,8 +107,12 @@ void CTxMemPool::remove(const CTransaction &tx, std::list<CTransaction>& removed
         if (mapTx.count(hash))
         {
             removed.push_front(tx);
-            BOOST_FOREACH(const CTxIn& txin, tx.vin)
+            BOOST_FOREACH(const CTxIn& txin, tx.vin){
                 mapNextTx.erase(txin.prevout);
+                BOOST_FOREACH(const uint256 serial, txin.GetZerocoinSerialNumbers()){
+                    mapZerocoinSerialNumbers.erase(serial);
+                }
+            }
             mapTx.erase(hash);
             nTransactionsUpdated++;
         }
@@ -133,6 +141,7 @@ void CTxMemPool::clear()
     LOCK(cs);
     mapTx.clear();
     mapNextTx.clear();
+    mapZerocoinSerialNumbers.clear();
     ++nTransactionsUpdated;
 }
 
@@ -159,9 +168,17 @@ void CTxMemPool::check(CCoinsViewCache *pcoins) const
             }
             // Check whether its inputs are marked in mapNextTx.
             std::map<COutPoint, CInPoint>::const_iterator it3 = mapNextTx.find(txin.prevout);
-            assert(it3 != mapNextTx.end());
-            assert(it3->second.ptx == &tx);
-            assert(it3->second.n == i);
+            if(txin.isZC()){// we the always spendable  transaction may be mapped to many things. this is fine
+                // we only want to check that we have it's serial numbers somewhere.
+                /// XXX FIXME ... redo this when we are not using random serial numbers
+                /*BOOST_FOREACH(const uint256 serial, txin.GetZerocoinSerialNumbers()){
+                     assert(mapZerocoinSerialNumbers.count(serial));
+                 }; */
+            }else{
+                assert(it3 != mapNextTx.end()); //
+                assert(it3->second.ptx == &tx);
+                assert(it3->second.n == i);
+            }
             i++;
         }
     }
@@ -170,9 +187,11 @@ void CTxMemPool::check(CCoinsViewCache *pcoins) const
         map<uint256, CTxMemPoolEntry>::const_iterator it2 = mapTx.find(hash);
         const CTransaction& tx = it2->second.GetTx();
         assert(it2 != mapTx.end());
-        assert(&tx == it->second.ptx);
-        assert(tx.vin.size() > it->second.n);
-        assert(it->first == it->second.ptx->vin[it->second.n].prevout);
+        if(it->first.hash != always_spendable_txid){ // if it's the always spendable transaction, the mapping data may have been overwritten
+            assert(&tx == it->second.ptx);
+            assert(tx.vin.size() > it->second.n);
+            assert(it->first == it->second.ptx->vin[it->second.n].prevout);
+        }
     }
 }
 
@@ -210,5 +229,14 @@ bool CCoinsViewMemPool::GetCoins(const uint256 &txid, CCoins &coins) {
 
 bool CCoinsViewMemPool::HaveCoins(const uint256 &txid) {
     return mempool.exists(txid) || base->HaveCoins(txid);
+}
+
+bool CCoinsViewMemPool::GetSerial(const uint256 &serial, uint256 &txid){
+    if(mempool.mapZerocoinSerialNumbers.count(serial)){
+        txid = mempool.mapZerocoinSerialNumbers[serial].ptx->GetHash();
+        return true;
+    }else{
+        return base->GetSerial(serial,txid);
+    }
 }
 

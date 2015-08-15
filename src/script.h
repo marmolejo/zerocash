@@ -22,7 +22,7 @@ class CCoins;
 class CKeyStore;
 class CTransaction;
 
-static const unsigned int MAX_SCRIPT_ELEMENT_SIZE = 520; // bytes
+static const unsigned int MAX_SCRIPT_ELEMENT_SIZE = 6000; // bytes //FIXME fine tune this
 static const unsigned int MAX_OP_RETURN_RELAY = 40;      // bytes
 
 /** Signature hash types/flags */
@@ -194,10 +194,11 @@ enum opcodetype
     OP_CHECKMULTISIG = 0xae,
     OP_CHECKMULTISIGVERIFY = 0xaf,
 
+    FLAG_ZC_MINT = 0xb0,
+    FLAG_ZC_POUR = 0xb1,
+    FLAG_ZC_POUR_INTERMEDIATE = 0xb2,
+
     // expansion
-    OP_NOP1 = 0xb0,
-    OP_NOP2 = 0xb1,
-    OP_NOP3 = 0xb2,
     OP_NOP4 = 0xb3,
     OP_NOP5 = 0xb4,
     OP_NOP6 = 0xb5,
@@ -545,6 +546,10 @@ public:
     // Called by IsStandardTx and P2SH VerifyScript (which makes it consensus-critical).
     bool IsPushOnly() const;
 
+    bool IsZCMint() const;
+    bool IsZCPour() const;
+    bool isZCPourIntermediate() const;
+
     // Called by IsStandardTx.
     bool HasCanonicalPushes() const;
 
@@ -598,7 +603,7 @@ public:
         return CScriptID(Hash160(*this));
     }
 };
-
+uint256 SignatureHash(const CScript &scriptCode, const CTransaction& txTo, unsigned int nIn, int nHashType);
 /** Compact serializer for scripts.
  *
  *  It detects common cases and encodes them much more efficiently.

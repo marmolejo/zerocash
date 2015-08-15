@@ -61,6 +61,7 @@ public:
     mutable CCriticalSection cs;
     std::map<uint256, CTxMemPoolEntry> mapTx;
     std::map<COutPoint, CInPoint> mapNextTx;
+    std::map<uint256,CInPoint> mapZerocoinSerialNumbers;
 
     CTxMemPool();
 
@@ -108,6 +109,7 @@ public:
     CCoinsViewMemPool(CCoinsView &baseIn, CTxMemPool &mempoolIn);
     bool GetCoins(const uint256 &txid, CCoins &coins);
     bool HaveCoins(const uint256 &txid);
+    bool GetSerial(const uint256 &serial, uint256 &txid);
 };
 
 #endif /* BITCOIN_TXMEMPOOL_H */

@@ -10,6 +10,7 @@
 #include "bitcoin-config.h"
 #endif
 
+#define ZC_MERKLE_DEPTH 4
 #include "bignum.h"
 #include "chainparams.h"
 #include "coins.h"
@@ -28,6 +29,8 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include<libzerocash/ZerocashParams.h>
+#include<libzerocash/IncrementalMerkleTree.h>
 
 class CBlockIndex;
 class CBloomFilter;
@@ -75,6 +78,7 @@ static const unsigned char REJECT_NONSTANDARD = 0x40;
 static const unsigned char REJECT_DUST = 0x41;
 static const unsigned char REJECT_INSUFFICIENTFEE = 0x42;
 static const unsigned char REJECT_CHECKPOINT = 0x43;
+
 
 
 extern CScript COINBASE_FLAGS;
@@ -315,14 +319,16 @@ bool IsStandardTx(const CTransaction& tx, std::string& reason);
 
 bool IsFinalTx(const CTransaction &tx, int nBlockHeight = 0, int64_t nBlockTime = 0);
 
+
 /** Undo information for a CBlock */
 class CBlockUndo
 {
 public:
     std::vector<CTxUndo> vtxundo; // for all but the coinbase
-
+    libzerocash::IncrementalMerkleTreeCompact previousPrunedZerocoinMerkleTree;
     IMPLEMENT_SERIALIZE(
         READWRITE(vtxundo);
+        READWRITE(previousPrunedZerocoinMerkleTree);
     )
 
     bool WriteToDisk(CDiskBlockPos &pos, const uint256 &hashBlock)
@@ -716,6 +722,7 @@ public:
     unsigned int nTime;
     unsigned int nBits;
     unsigned int nNonce;
+    uint256 hashZerocoinMerkleRoot;
 
     // (memory only) Sequencial id assigned to distinguish order in which blocks are received.
     uint32_t nSequenceId;
@@ -739,6 +746,7 @@ public:
         nTime          = 0;
         nBits          = 0;
         nNonce         = 0;
+        hashZerocoinMerkleRoot = 0;
     }
 
     CBlockIndex(CBlockHeader& block)
@@ -760,6 +768,8 @@ public:
         nTime          = block.nTime;
         nBits          = block.nBits;
         nNonce         = block.nNonce;
+        hashZerocoinMerkleRoot = block.hashZerocoinMerkleRoot;
+
     }
 
     CDiskBlockPos GetBlockPos() const {
@@ -790,6 +800,7 @@ public:
         block.nTime          = nTime;
         block.nBits          = nBits;
         block.nNonce         = nNonce;
+        block.hashZerocoinMerkleRoot = hashZerocoinMerkleRoot;
         return block;
     }
 
@@ -856,6 +867,7 @@ public:
     }
 };
 
+libzerocash::IncrementalMerkleTree getZerocoinMerkleTree(CBlockIndex* pindex);
 
 
 /** Used to marshal pointers into hashes for db storage. */
@@ -894,6 +906,7 @@ public:
         READWRITE(nTime);
         READWRITE(nBits);
         READWRITE(nNonce);
+        READWRITE(hashZerocoinMerkleRoot);
     )
 
     uint256 GetBlockHash() const
@@ -905,6 +918,7 @@ public:
         block.nTime           = nTime;
         block.nBits           = nBits;
         block.nNonce          = nNonce;
+        block.hashZerocoinMerkleRoot = hashZerocoinMerkleRoot;
         return block.GetHash();
     }
 
@@ -1056,6 +1070,8 @@ extern CCoinsViewCache *pcoinsTip;
 
 /** Global variable that points to the active block tree (protected by cs_main) */
 extern CBlockTreeDB *pblocktree;
+
+extern libzerocash::ZerocashParams *pzerocashParams;
 
 struct CBlockTemplate
 {
