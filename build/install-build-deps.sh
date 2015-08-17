@@ -7,13 +7,17 @@
 # Script to install everything needed to build zerocash
 
 # Packages needed for development
-dev_list="autoconf libdb++-dev libboost-all-dev libssl-dev libprotobuf-dev
-          protobuf-compiler libqrencode-dev libqt4-dev libminiupnpc-dev"
+bt_list="autoconf libdb++-dev libboost-all-dev libssl-dev libprotobuf-dev
+         protobuf-compiler libqrencode-dev libqt4-dev libminiupnpc-dev"
+
+snark_list="libgmp-dev libprocps3-dev python-markdown"
+
+zcash_list="libncurses5-dev libcrypto++-dev"
 
 sudo apt-get update
 
 packages="$(
-  echo "${dev_list}" |
+  echo "${bt_list} ${snark_list} ${zcash_list}" |
   tr " " "\n" | sort -u | tr "\n" " "
 )"
 
