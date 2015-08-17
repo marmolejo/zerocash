@@ -845,6 +845,8 @@ bool BackupWallet(const CWallet& wallet, const string& strDest)
                 if (filesystem::is_directory(pathDest))
                     pathDest /= wallet.strWalletFile;
 
+                // HACK(marmolejo): Temporarily disable copy_file due to libboost C++ version problems
+                /*
                 try {
 #if BOOST_VERSION >= 104000
                     filesystem::copy_file(pathSrc, pathDest, filesystem::copy_option::overwrite_if_exists);
@@ -857,6 +859,7 @@ bool BackupWallet(const CWallet& wallet, const string& strDest)
                     LogPrintf("error copying wallet.dat to %s - %s\n", pathDest.string(), e.what());
                     return false;
                 }
+                */
             }
         }
         MilliSleep(100);
@@ -896,7 +899,7 @@ bool CWalletDB::Recover(CDBEnv& dbenv, std::string filename, bool fOnlyKeys)
         LogPrintf("Salvage(aggressive) found no records in %s.\n", newFilename);
         return false;
     }
-    LogPrintf("Salvage(aggressive) found %"PRIszu" records\n", salvagedData.size());
+    LogPrintf("Salvage(aggressive) found %u records\n", salvagedData.size());
 
     bool fSuccess = allOK;
     Db* pdbCopy = new Db(&dbenv.dbenv, 0);
