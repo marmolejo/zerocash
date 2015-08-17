@@ -1,0 +1,3 @@
+[submodule "libzerocash"]
+	path = libzerocash
+	url = https://github.com/Zerocash/libzerocash.git
