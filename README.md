@@ -44,3 +44,34 @@ If everything goes well, you should be able to compile zerocash by simply
 typing
 
     $ make
+
+Before running the server, libsnark must be added to the library path:
+
+    $ sudo ln -sf $HOME/zerocash/libzerocash/depinst/lib/libsnark.so /usr/local/lib
+    $ sudo ldconfig
+
+## Running in the regtest mode
+
+To test the code, first create an empty directory to perform the tests:
+
+    $ mkdir -p $HOME/tmp/z
+
+Inside this directory, create a file named bitcoin.conf with the following
+values:
+
+    rpcuser=bitcoinrpc
+    rpcpassword=<select a random secret>
+    rpcport=8332
+
+When this is done, you are ready to start the server:
+
+    src/bitcoind -datadir=$HOME/tmp/z -server -regtest -printtoconsole
+
+Now the server is ready to accept commands, first generate around 150 blocks
+to start playing around:
+
+    src/bitcoind -datadir=$HOME/tmp/z setgenerate true 150
+
+Test with some transactions using the included script as an example:
+
+    ./test.sh
