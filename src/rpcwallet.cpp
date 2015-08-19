@@ -461,7 +461,12 @@ Value zerocoinmint(const Array& params, bool fHelp){
 	    CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
 	    ss << rawTx;
 
-	    return HexStr(ss.begin(), ss.end());
+    // Return both commitment id (to use it in pour) and raw transaction.
+    Object result;
+    result.push_back(Pair("cid", cid.ToString()));
+    result.push_back(Pair("hex", HexStr(ss.begin(), ss.end())));
+
+    return result;
 }
 Value zerocoinpour(const Array& params, bool fHelp){
     if (fHelp || params.size() < 4)

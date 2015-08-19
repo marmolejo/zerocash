@@ -52,9 +52,10 @@ Before running the server, libsnark must be added to the library path:
 
 ## Running in the regtest mode
 
-To test the code, first create an empty directory to perform the tests:
+To test the code, create the directory which is going to hold the
+configuration, blocks and wallet storage:
 
-    $ mkdir -p $HOME/tmp/z
+    $ mkdir -p $HOME/.bitcoin
 
 Inside this directory, create a file named bitcoin.conf with the following
 values:
@@ -65,13 +66,9 @@ values:
 
 When this is done, you are ready to start the server:
 
-    src/bitcoind -datadir=$HOME/tmp/z -server -regtest -printtoconsole
+    src/bitcoind -server -regtest -printtoconsole -debug
 
-Now the server is ready to accept commands, first generate around 150 blocks
-to start playing around:
+Now the server is ready to accept commands, use the included script as an
+example:
 
-    src/bitcoind -datadir=$HOME/tmp/z setgenerate true 150
-
-Test with some transactions using the included script as an example:
-
-    ./test.sh
+    ./test2.sh
