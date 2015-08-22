@@ -1437,7 +1437,7 @@ void UpdateCoins(const CTransaction& tx, CValidationState &state, CCoinsViewCach
         BOOST_FOREACH(const CTxIn &txin, tx.vin) {
             if(txin.IsZCPour()){
                 BOOST_FOREACH(const uint256 serial, txin.GetZerocoinSerialNumbers()){
-                    markeSerialAsSpent(inputs,serial,tx.GetHash());
+                    markSerialAsSpent(inputs,serial,tx.GetHash());
                 }
             }
             CCoins &coins = inputs.GetCoins(txin.prevout.hash);

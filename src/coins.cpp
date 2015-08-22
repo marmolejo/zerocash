@@ -37,8 +37,8 @@ bool isSerialSpendable(CCoinsView &v,const uint256 &txid, const uint256 &serial,
         return true;
     }
 }
-bool markeSerialAsSpent(CCoinsView &v, const uint256 &serial,const uint256 &txid){
-    LogPrint("zerocoin","zerocoin markeSerialAsSpent: marking serial %s as spent by %s \n",serial.ToString(),txid.ToString());
+bool markSerialAsSpent(CCoinsView &v, const uint256 &serial,const uint256 &txid){
+    LogPrint("zerocoin","zerocoin markSerialAsSpent: marking serial %s as spent by %s \n",serial.ToString(),txid.ToString());
     return v.SetSerial(serial,txid);
 }
 bool markSerialAsUnSpent(CCoinsView &v, const uint256 &serial){
