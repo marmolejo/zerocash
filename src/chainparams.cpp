@@ -110,7 +110,9 @@ public:
         vAlertPubKey = ParseHex("04fc9702847840aaf195de8442ebecedf5b095cdbb9bc716bda9110971b28a49e0ead8564ff0db22209e0374782c093bb899692d524e9d6a6956e7c5ecbcd68284");
         nDefaultPort = 8333;
         nRPCPort = 8332;
-        bnProofOfWorkLimit = CBigNum(~uint256(0) >> 32);
+
+        // Increase proofOfWorkLimit to allow a faster genesis block generation.
+        bnProofOfWorkLimit = CBigNum(~uint256(0) >> 24);
         nSubsidyHalvingInterval = 210000;
 
         // Build the genesis block. Note that the output of the genesis coinbase cannot
@@ -133,11 +135,14 @@ public:
         genesis.hashMerkleRoot = genesis.BuildMerkleTree();
         genesis.nVersion = 1;
         genesis.nTime    = 1231006505;
-        genesis.nBits    = 0x1d00ffff;
-        genesis.nNonce   = 2083236893;
+
+        // Reduce target difficulty by one byte from official number to allow
+        // faster genesis block generation.
+        genesis.nBits    = 0x1e00ffff;
+        genesis.nNonce   = 3802577;
 
         hashGenesisBlock = genesis.GetHash();
-        //assert(hashGenesisBlock == uint256("0x000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"));
+        assert(hashGenesisBlock == uint256("0x000000fef628f7445bc21642c81e5f9c194aea6c0a8a643e3129de488c179eb7"));
         assert(genesis.hashMerkleRoot == uint256("0x4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"));
 
         vSeeds.push_back(CDNSSeedData("bitcoin.sipa.be", "seed.bitcoin.sipa.be"));
@@ -201,9 +206,9 @@ public:
 
         // Modify the testnet genesis block so the timestamp is valid for a later start.
         genesis.nTime = 1296688602;
-        genesis.nNonce = 414098458;
+        genesis.nNonce = 87600388;
         hashGenesisBlock = genesis.GetHash();
-        //assert(hashGenesisBlock == uint256("0x000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943"));
+        assert(hashGenesisBlock == uint256("0x00000096554c25f9fdb3ee4a73f9ff9adfac3358be6a6dceb264389d0b215c33"));
 
         vFixedSeeds.clear();
         vSeeds.clear();
@@ -238,16 +243,19 @@ public:
         genesis.nNonce = 5;
         hashGenesisBlock = genesis.GetHash();
 
-        /*uint256 target = CBigNum().SetCompact(genesis.nBits).getuint256();
-        while(hashGenesisBlock > target){
-            genesis.nNonce++;
-            hashGenesisBlock = genesis.GetHash();
-        }
-        cout << " \n \n \n nonce " << genesis.nNonce << "\n\n\n"  << endl;
-        assert(2 == genesis.nNonce ); */
+        // This code gets the nonce from a given target. Found nNonce = 5
+        //
+        //  uint256 target = CBigNum().SetCompact(genesis.nBits).getuint256();
+        //  while(hashGenesisBlock > target){
+        //    genesis.nNonce++;
+        //    hashGenesisBlock = genesis.GetHash();
+        //  }
+        //
+        //  cout << " \n \n \n nonce " << genesis.nNonce << "\n\n\n"  << endl;
+        //  assert(2 == genesis.nNonce );
         nDefaultPort = 18444;
         strDataDir = "regtest";
-        //assert(hashGenesisBlock == uint256("0x0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206"));
+        assert(hashGenesisBlock == uint256("0x6036e5e0982407087393fbb5ded0e3ad0274ef87200de426854308d1ef8b9331"));
 
         vSeeds.clear();  // Regtest mode doesn't have any DNS seeds.
     }
