@@ -72,3 +72,8 @@ Now the server is ready to accept commands, use the included script as an
 example:
 
     ./test2.sh
+
+Or you can choose to run the included tests by executing:
+
+    make check
+

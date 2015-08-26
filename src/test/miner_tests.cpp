@@ -11,39 +11,47 @@ extern void SHA256Transform(void* pstate, void* pinput, const void* pinit);
 
 BOOST_AUTO_TEST_SUITE(miner_tests)
 
+// This table can be computed placing the following code just before the line
+// "BOOST_CHECK(ProcessBlock(state, NULL, pblock));" :
+//
+//  pblock->nNonce = 0;
+//  uint256 target = CBigNum().SetCompact(pblock->nBits).getuint256();
+//  while (pblock->GetHash() > target) pblock->nNonce++;
+//  printf("{%d, 0x%08x}, ", blockinfo[i].extranonce, pblock->nNonce);
+//  if (++j == 4) { j=0; printf("\n    "); }
 static
 struct {
     unsigned char extranonce;
     unsigned int nonce;
 } blockinfo[] = {
-    {4, 0xa4a3e223}, {2, 0x15c32f9e}, {1, 0x0375b547}, {1, 0x7004a8a5},
-    {2, 0xce440296}, {2, 0x52cfe198}, {1, 0x77a72cd0}, {2, 0xbb5d6f84},
-    {2, 0x83f30c2c}, {1, 0x48a73d5b}, {1, 0xef7dcd01}, {2, 0x6809c6c4},
-    {2, 0x0883ab3c}, {1, 0x087bbbe2}, {2, 0x2104a814}, {2, 0xdffb6daa},
-    {1, 0xee8a0a08}, {2, 0xba4237c1}, {1, 0xa70349dc}, {1, 0x344722bb},
-    {3, 0xd6294733}, {2, 0xec9f5c94}, {2, 0xca2fbc28}, {1, 0x6ba4f406},
-    {2, 0x015d4532}, {1, 0x6e119b7c}, {2, 0x43e8f314}, {2, 0x27962f38},
-    {2, 0xb571b51b}, {2, 0xb36bee23}, {2, 0xd17924a8}, {2, 0x6bc212d9},
-    {1, 0x630d4948}, {2, 0x9a4c4ebb}, {2, 0x554be537}, {1, 0xd63ddfc7},
-    {2, 0xa10acc11}, {1, 0x759a8363}, {2, 0xfb73090d}, {1, 0xe82c6a34},
-    {1, 0xe33e92d7}, {3, 0x658ef5cb}, {2, 0xba32ff22}, {5, 0x0227a10c},
-    {1, 0xa9a70155}, {5, 0xd096d809}, {1, 0x37176174}, {1, 0x830b8d0f},
-    {1, 0xc6e3910e}, {2, 0x823f3ca8}, {1, 0x99850849}, {1, 0x7521fb81},
-    {1, 0xaacaabab}, {1, 0xd645a2eb}, {5, 0x7aea1781}, {5, 0x9d6e4b78},
-    {1, 0x4ce90fd8}, {1, 0xabdc832d}, {6, 0x4a34f32a}, {2, 0xf2524c1c},
-    {2, 0x1bbeb08a}, {1, 0xad47f480}, {1, 0x9f026aeb}, {1, 0x15a95049},
-    {2, 0xd1cb95b2}, {2, 0xf84bbda5}, {1, 0x0fa62cd1}, {1, 0xe05f9169},
-    {1, 0x78d194a9}, {5, 0x3e38147b}, {5, 0x737ba0d4}, {1, 0x63378e10},
-    {1, 0x6d5f91cf}, {2, 0x88612eb8}, {2, 0xe9639484}, {1, 0xb7fabc9d},
-    {2, 0x19b01592}, {1, 0x5a90dd31}, {2, 0x5bd7e028}, {2, 0x94d00323},
-    {1, 0xa9b9c01a}, {1, 0x3a40de61}, {1, 0x56e7eec7}, {5, 0x859f7ef6},
-    {1, 0xfd8e5630}, {1, 0x2b0c9f7f}, {1, 0xba700e26}, {1, 0x7170a408},
-    {1, 0x70de86a8}, {1, 0x74d64cd5}, {1, 0x49e738a1}, {2, 0x6910b602},
-    {0, 0x643c565f}, {1, 0x54264b3f}, {2, 0x97ea6396}, {2, 0x55174459},
-    {2, 0x03e8779a}, {1, 0x98f34d8f}, {1, 0xc07b2b07}, {1, 0xdfe29668},
-    {1, 0x3141c7c1}, {1, 0xb3b595f4}, {1, 0x735abf08}, {5, 0x623bfbce},
-    {2, 0xd351e722}, {1, 0xf4ca48c9}, {1, 0x5b19c670}, {1, 0xa164bf0e},
-    {2, 0xbbbeb305}, {2, 0xfe1c810a},
+    {4, 0x035315c0}, {2, 0x00f34075}, {1, 0x0046387b}, {1, 0x013bc018},
+    {2, 0x01a1c9fb}, {2, 0x00148f3f}, {1, 0x004b8c3a}, {2, 0x000a724d},
+    {2, 0x012f4d96}, {1, 0x0046149c}, {1, 0x00d1fcfd}, {2, 0x010cb439},
+    {2, 0x00d25e16}, {1, 0x033cbf12}, {2, 0x004146e9}, {2, 0x000f553f},
+    {1, 0x015d2032}, {2, 0x00923f44}, {1, 0x00064189}, {1, 0x00c826cc},
+    {3, 0x02f5fe90}, {2, 0x0059b73f}, {2, 0x000f0c8d}, {1, 0x00b3f8ef},
+    {2, 0x011b737c}, {1, 0x004db97c}, {2, 0x0018027b}, {2, 0x0153488a},
+    {2, 0x0000b619}, {2, 0x01a42269}, {2, 0x02c3a5c0}, {2, 0x0444a830},
+    {1, 0x01835799}, {2, 0x0173e357}, {2, 0x00185713}, {1, 0x010e51ac},
+    {2, 0x019ac360}, {1, 0x028ef677}, {2, 0x01513152}, {1, 0x005f0d86},
+    {1, 0x01964b1d}, {3, 0x0045cfa2}, {2, 0x00fe1ac1}, {5, 0x02b378b6},
+    {1, 0x009d0c3c}, {5, 0x00505606}, {1, 0x007fbfad}, {1, 0x00bc7322},
+    {1, 0x00bc6049}, {2, 0x0031ab73}, {1, 0x009ba996}, {1, 0x01c3705e},
+    {1, 0x007be30e}, {1, 0x006bacf2}, {5, 0x00517732}, {5, 0x00e3d178},
+    {1, 0x00000aa4}, {1, 0x00e93eae}, {6, 0x002b65ee}, {2, 0x004c70a4},
+    {2, 0x00bb0bed}, {1, 0x00c2ec6a}, {1, 0x0009e182}, {1, 0x0018fe66},
+    {2, 0x004c44d5}, {2, 0x014488b5}, {1, 0x001b3f85}, {1, 0x0266f678},
+    {1, 0x010d5e19}, {5, 0x00112e9e}, {5, 0x025678ec}, {1, 0x00a2c838},
+    {1, 0x0283f1e5}, {2, 0x00e9fb55}, {2, 0x0467aa2d}, {1, 0x03419a4d},
+    {2, 0x01203f39}, {1, 0x009635b4}, {2, 0x0079c1fa}, {2, 0x00423774},
+    {1, 0x019d834f}, {1, 0x00d5b85f}, {1, 0x0185fa4f}, {5, 0x00234b1b},
+    {1, 0x00bd20b8}, {1, 0x000b4651}, {1, 0x00e2986e}, {1, 0x00e3f68c},
+    {1, 0x02359ce1}, {1, 0x001aea55}, {1, 0x007fe680}, {2, 0x029a610d},
+    {0, 0x0169d239}, {1, 0x00238f91}, {2, 0x02dd83fe}, {2, 0x008cccc0},
+    {2, 0x0030557c}, {1, 0x003b68f3}, {1, 0x015854ae}, {1, 0x004bd6c9},
+    {1, 0x0145b45a}, {1, 0x00f74051}, {1, 0x02b52368}, {5, 0x00b06156},
+    {2, 0x03ac13a4}, {1, 0x000a0ce7}, {1, 0x00c559c5}, {1, 0x0032bb98},
+    {2, 0x018124c0}, {2, 0x047fdff4},
 };
 
 // NOTE: These tests rely on CreateNewBlock doing its own self-validation!
